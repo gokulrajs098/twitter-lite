@@ -7,8 +7,34 @@ import RightPanel from "./components/common/RightPanel";
 import Notification from "../../backend/models/notification.model";
 import ProfilePage from "./pages/profile/ProfilePage";
 import { Toaster } from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
 
 function App() {
+	const {data, isLoading, error, isError} = useQuery({
+		queryKey: ['authUser'],
+		queryFn: async ()=>{
+			try {
+				const res = await fetch("/api/auth/me");
+				const data = await res.json();
+
+				if(!res.ok){
+					throw new Error(data.error || "something went wrong")
+				}
+				console.log("authUser is her:", data)
+				return data
+			} catch (error) {
+				throw new Error(error);
+			}
+		}
+	})
+
+	if(isLoading){
+		return(
+			<div className="h-screen flex justify-center items-center">
+				<LoadingSpinner size="lg"/>
+			</div>
+		)
+	}
 	return (
 		<div className='flex max-w-6xl mx-auto'>
 			<SideBar/>
