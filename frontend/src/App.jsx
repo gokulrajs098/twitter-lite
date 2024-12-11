@@ -1,21 +1,23 @@
 import SignUpPage from "./pages/auth/signup/SignUpPage";
 import HomePage from "./pages/home/HomePage";
 import LoginPage from "./pages/auth/login/LoginPage";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import SideBar from "./components/common/SideBar"
 import RightPanel from "./components/common/RightPanel";
 import Notification from "../../backend/models/notification.model";
 import ProfilePage from "./pages/profile/ProfilePage";
 import { Toaster } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
+import LoadingSpinner from "./components/common/LoadingSpinner";
 
 function App() {
-	const {data, isLoading, error, isError} = useQuery({
+	const {data:authUser, isLoading, error, isError} = useQuery({
 		queryKey: ['authUser'],
 		queryFn: async ()=>{
 			try {
 				const res = await fetch("/api/auth/me");
 				const data = await res.json();
+				if(data.error) return null
 
 				if(!res.ok){
 					throw new Error(data.error || "something went wrong")
@@ -25,7 +27,8 @@ function App() {
 			} catch (error) {
 				throw new Error(error);
 			}
-		}
+		},
+		retry:false
 	})
 
 	if(isLoading){
@@ -37,15 +40,15 @@ function App() {
 	}
 	return (
 		<div className='flex max-w-6xl mx-auto'>
-			<SideBar/>
+			{authUser && <SideBar/>}
 			<Routes>
-				<Route path='/' element={<HomePage />} />
-				<Route path='/signup' element={<SignUpPage />} />
-				<Route path='/login' element={<LoginPage />} />
-				<Route path='/notifications' element={<Notification />} />
-				<Route path='/profile/:username' element={<ProfilePage />} />
+				<Route path='/' element={authUser?<HomePage />:<Navigate to='/login'/>} />
+				<Route path='/signup' element={!authUser? <SignUpPage />: <Navigate to="/"/>} />
+				<Route path='/login' element={!authUser?<LoginPage />: <Navigate to="/"/>} />
+				<Route path='/notifications' element={authUser?<Notification />:<Navigate to="/login"/>} />
+				<Route path='/profile/:username' element={authUser?<ProfilePage />:<Navigate to="/login"/>} />
 			</Routes>
-			<RightPanel/>
+			{authUser && <RightPanel/>}
 			<Toaster/>
 		</div>
 	);
