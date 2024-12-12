@@ -26,7 +26,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 })
 const PORT = process.env.PORT
-app.use(express.json()); // To parse request body in json format
+app.use(express.json({limit:"5mb"})); // To parse request body in json format
 app.use(express.urlencoded({extended:true})); // To parse form data
 app.use(cookieParser())
 
